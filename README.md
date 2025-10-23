@@ -1,126 +1,183 @@
-# Bet. - Social Gamification App MVP
+# Bet Mobile App
 
-A customizable social gamification app that lets groups create point-based games to motivate each other through friendly competition.
+A React Native mobile app with Node.js/Express backend featuring Google OAuth authentication and MongoDB integration.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 bet/
-├── client/           # React Native frontend (Expo)
+├── client/                 # React Native app
+│   ├── package.json
+│   ├── App.js
 │   ├── src/
 │   │   ├── screens/
-│   │   ├── components/
-│   │   ├── store/
-│   │   └── services/
-│   ├── App.js
+│   │   │   ├── LoginScreen.js
+│   │   │   └── HomeScreen.js
+│   │   ├── services/
+│   │   │   └── authService.js
+│   │   └── context/
+│   │       └── AuthContext.js
+├── server/                 # Node.js/Express backend
 │   ├── package.json
-│   └── README.md
-│
-├── server/           # Node.js backend
-│   ├── routes/
-│   ├── models/
-│   ├── controllers/
-│   ├── socket/
 │   ├── index.js
-│   ├── db.json (mock data)
-│   ├── package.json
-│   └── README.md
-│
-├── .gitignore
-└── README.md          # This file
+│   ├── routes/
+│   │   └── auth.js
+│   ├── models/
+│   │   └── User.js
+│   ├── middleware/
+│   │   └── auth.js
+│   └── .env.example
+└── README.md
 ```
 
-## 🚀 Quick Start
+## Features
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- Expo CLI (`npm install -g @expo/cli`)
+- **Google OAuth Integration**: Secure authentication using Google accounts
+- **JWT Token Management**: Secure token storage using Expo SecureStore
+- **MongoDB Integration**: User data persistence
+- **React Navigation**: Smooth navigation between screens
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Responsive Design**: Clean, modern UI design
 
-### 1. Start the Backend
-```bash
-cd server
-npm install
-npm run dev
-```
-The server will run on `http://localhost:3000`
+## Setup Instructions
 
-### 2. Start the Frontend
-```bash
-cd client
-npm install
-npx expo start
-```
-Follow the Expo instructions to run on your device or simulator.
+### Backend Setup
 
-## 🎮 Core Features
+1. **Navigate to server directory:**
+   ```bash
+   cd server
+   ```
 
-- **Game Setup**: Create groups, add members, and define rules with points
-- **Event Submission**: Log actions and earn points
-- **Veto System**: Members can veto events if threshold is met
-- **Real-time Leaderboard**: Live updates of scores and rankings
-- **Mock Users**: No authentication required for demo purposes
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## 🛠️ Tech Stack
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Update the `.env` file with your actual values:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `GOOGLE_CLIENT_ID`: Your Google OAuth client ID
+   - `GOOGLE_CLIENT_SECRET`: Your Google OAuth client secret
+   - `JWT_SECRET`: A secure JWT secret key
+   - `SESSION_SECRET`: A secure session secret key
 
-**Frontend:**
-- React Native (Expo)
+4. **Set up MongoDB:**
+   - Install MongoDB locally or use MongoDB Atlas
+   - Update the `MONGODB_URI` in `.env`
+
+5. **Set up Google OAuth:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project
+   - Enable Google+ API
+   - Create OAuth 2.0 credentials
+   - Add authorized redirect URIs: `http://localhost:5000/api/auth/google/callback`
+   - Update `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`
+
+6. **Start the server:**
+   ```bash
+   npm run dev
+   ```
+
+### Frontend Setup
+
+1. **Navigate to client directory:**
+   ```bash
+   cd client
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the app:**
+   ```bash
+   npm start
+   ```
+
+## API Endpoints
+
+### Authentication
+- `GET /api/auth/google` - Initiate Google OAuth login
+- `GET /api/auth/google/callback` - Google OAuth callback
+- `POST /api/auth/verify` - Verify JWT token
+- `POST /api/auth/logout` - Logout user
+
+### Health Check
+- `GET /api/health` - Server health status
+
+## Technologies Used
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB with Mongoose
+- Passport.js for OAuth
+- JWT for token management
+- CORS for cross-origin requests
+
+### Frontend
+- React Native
+- Expo
 - React Navigation
-- React Native Paper (UI components)
-- Zustand (state management)
-- Axios (API calls)
-- Socket.io-client (real-time updates)
+- Expo SecureStore
+- Expo WebBrowser
+- Axios for HTTP requests
 
-**Backend:**
-- Node.js + Express
-- Socket.io (real-time communication)
-- LowDB (temporary JSON DB)
-- CORS, Nodemon for development
+## Development
 
-## 📱 Screens
+### Running in Development Mode
 
-- **Home**: Choose or create a group
-- **Create Game**: Add rules and points
-- **Submit Event**: Log new actions
-- **Veto**: Review and veto recent events
-- **Leaderboard**: View rankings and scores
+1. Start the backend server:
+   ```bash
+   cd server
+   npm run dev
+   ```
 
-## 🔌 API Endpoints
+2. Start the React Native app:
+   ```bash
+   cd client
+   npm start
+   ```
 
-**REST (Express):**
-- `POST /groups/create` - Create a new group
-- `POST /rules/add` - Add a rule to a group
-- `POST /events/submit` - Submit a new event
-- `POST /events/veto` - Veto an event
-- `GET /leaderboard/:groupId` - Get group leaderboard
+### Testing
 
-**Socket.io Events:**
-- `event_added` - New event submitted
-- `veto_update` - Event veto status changed
-- `leaderboard_update` - Leaderboard scores updated
+The app includes comprehensive error handling and user feedback. Test the authentication flow by:
 
-## 🧪 Testing the App
+1. Opening the app
+2. Tapping "Continue with Google"
+3. Completing the OAuth flow
+4. Verifying user information is displayed
+5. Testing logout functionality
 
-1. Start both backend and frontend
-2. Create a new group with some rules
-3. Add mock users to the group
-4. Submit events and watch real-time updates
-5. Test the veto system
-6. Check leaderboard updates
+## Security Considerations
 
-## 🚀 Future Enhancements
+- JWT tokens are stored securely using Expo SecureStore
+- Session management with secure cookies
+- CORS configuration for mobile app origins
+- Environment variables for sensitive configuration
+- Password hashing with bcrypt (for future password-based auth)
 
-- MongoDB integration (see server/README.md)
-- User authentication
-- Push notifications
-- Advanced game mechanics
-- Social features
+## Troubleshooting
 
-## 📚 Documentation
+### Common Issues
 
-- [Client Documentation](./client/README.md)
-- [Server Documentation](./server/README.md)
+1. **MongoDB Connection Error**: Ensure MongoDB is running and the connection string is correct
+2. **Google OAuth Error**: Verify client ID and secret are correct, and redirect URI is properly configured
+3. **CORS Issues**: Check that the client origin is included in the CORS configuration
+4. **Token Verification Failed**: Ensure JWT secret is consistent between token creation and verification
 
-## 👥 For EECS 497 Class
+### Debug Mode
 
-This project emphasizes usability and user-centered design. The app is designed to be intuitive and engaging for group motivation and friendly competition.
+Enable debug logging by setting environment variables:
+```bash
+DEBUG=* npm run dev
+```
+
+## License
+
+This project is licensed under the MIT License.

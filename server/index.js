@@ -1,154 +1,55 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const passport = require('passport');
+const session = require('express-session');
+require('dotenv').config();
 
-// Import routes
-const groupRoutes = require('./routes/groups');
-const eventRoutes = require('./routes/events');
-const leaderboardRoutes = require('./routes/leaderboard');
+const authRoutes = require('./routes/auth');
+const { initializePassport } = require('./middleware/auth');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:8081'], // React Native dev server
+  credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Simple file-based database
-const dbPath = path.join(__dirname, 'db.json');
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set to true in production with HTTPS
+}));
 
-// Initialize database with mock data
-function initializeDB() {
-  if (!fs.existsSync(dbPath)) {
-    const initialData = {
-      users: [
-        { id: '1', name: 'Alex' },
-        { id: '2', name: 'Jordan' },
-        { id: '3', name: 'Sam' },
-        { id: '4', name: 'Taylor' },
-        { id: '5', name: 'Casey' }
-      ],
-      groups: [
-        {
-          id: '1',
-          name: 'Fitness Challenge',
-          members: ['1', '2', '3'],
-          rules: ['1', '2', '3']
-        }
-      ],
-      rules: [
-        {
-          id: '1',
-          description: 'Run 1 mile',
-          points: 10,
-          vetoThreshold: 2
-        },
-        {
-          id: '2',
-          description: 'Do 50 push-ups',
-          points: 15,
-          vetoThreshold: 1
-        },
-        {
-          id: '3',
-          description: 'Meditate for 10 minutes',
-          points: 5,
-          vetoThreshold: 3
-        }
-      ],
-      events: [],
-      leaderboards: [
-        {
-          groupId: '1',
-          scores: [
-            { userId: '1', totalPoints: 0 },
-            { userId: '2', totalPoints: 0 },
-            { userId: '3', totalPoints: 0 }
-          ]
-        }
-      ]
-    };
-    
-    fs.writeFileSync(dbPath, JSON.stringify(initialData, null, 2));
-  }
-}
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Database helper functions
-function readDB() {
-  try {
-    const data = fs.readFileSync(dbPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading database:', error);
-    return { users: [], groups: [], rules: [], events: [], leaderboards: [] };
-  }
-}
+// Initialize passport strategies
+initializePassport();
 
-function writeDB(data) {
-  try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
-    return true;
-  } catch (error) {
-    console.error('Error writing database:', error);
-    return false;
-  }
-}
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bet', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Bet. Server is running!', 
-    endpoints: {
-      groups: '/groups',
-      events: '/events', 
-      leaderboard: '/leaderboard'
-    }
-  });
+app.use('/api/auth', authRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
 });
 
-app.use('/groups', groupRoutes);
-app.use('/events', eventRoutes);
-app.use('/leaderboard', leaderboardRoutes);
-
-// Socket.io connection handling
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
-  socket.on('join_group', (groupId) => {
-    socket.join(`group_${groupId}`);
-    console.log(`User ${socket.id} joined group ${groupId}`);
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Make db functions and io available to routes
-app.locals.readDB = readDB;
-app.locals.writeDB = writeDB;
-app.locals.io = io;
-
-const PORT = process.env.PORT || 3000;
-
-// Start server
-function startServer() {
-  initializeDB();
-  
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 Socket.io server ready for connections`);
-  });
-}
-
-startServer();

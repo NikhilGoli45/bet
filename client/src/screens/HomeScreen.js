@@ -1,194 +1,118 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
-  StyleSheet,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import {
-  Card,
-  Title,
-  Paragraph,
-  Button,
-  List,
-  Divider,
-  FAB,
-  ActivityIndicator,
   Text,
-} from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import useStore from '../store/useStore';
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Alert
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
-const HomeScreen = () => {
-  const navigation = useNavigation();
-  const {
-    groups,
-    loading,
-    error,
-    loadGroups,
-    setCurrentGroup,
-    setCurrentUser,
-  } = useStore();
+export default function HomeScreen() {
+  const { user, logout } = useAuth();
 
-  const [selectedUser, setSelectedUser] = useState(null);
-
-  // Mock users for demo
-  const mockUsers = [
-    { id: '1', name: 'Alex' },
-    { id: '2', name: 'Jordan' },
-    { id: '3', name: 'Sam' },
-    { id: '4', name: 'Taylor' },
-    { id: '5', name: 'Casey' },
-  ];
-
-  useEffect(() => {
-    loadGroups();
-  }, []);
-
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    setCurrentUser(user);
-  };
-
-  const handleGroupSelect = (group) => {
-    if (!selectedUser) {
-      Alert.alert('Select User', 'Please select a user first');
-      return;
-    }
-    setCurrentGroup(group);
-    navigation.navigate('Event');
-  };
-
-  const handleCreateGroup = () => {
-    if (!selectedUser) {
-      Alert.alert('Select User', 'Please select a user first');
-      return;
-    }
-    navigation.navigate('CreateGame');
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>Loading groups...</Text>
-      </View>
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', onPress: logout }
+      ]
     );
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Welcome to Bet.</Title>
-            <Paragraph>
-              Choose your user and join a group to start competing!
-            </Paragraph>
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Select User</Title>
-            <Paragraph>Choose your identity for this session:</Paragraph>
-            {mockUsers.map((user) => (
-              <Button
-                key={user.id}
-                mode={selectedUser?.id === user.id ? 'contained' : 'outlined'}
-                onPress={() => handleUserSelect(user)}
-                style={styles.userButton}
-              >
-                {user.name}
-              </Button>
-            ))}
-          </Card.Content>
-        </Card>
-
-        {selectedUser && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Title>Available Groups</Title>
-              {groups.length === 0 ? (
-                <Paragraph>No groups available. Create one to get started!</Paragraph>
-              ) : (
-                groups.map((group) => (
-                  <List.Item
-                    key={group.id}
-                    title={group.name}
-                    description={`${group.members.length} members`}
-                    right={(props) => (
-                      <Button
-                        mode="contained"
-                        onPress={() => handleGroupSelect(group)}
-                      >
-                        Join
-                      </Button>
-                    )}
-                  />
-                ))
-              )}
-            </Card.Content>
-          </Card>
-        )}
-
-        {error && (
-          <Card style={[styles.card, styles.errorCard]}>
-            <Card.Content>
-              <Text style={styles.errorText}>Error: {error}</Text>
-            </Card.Content>
-          </Card>
-        )}
-      </ScrollView>
-
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        label="Create Group"
-        onPress={handleCreateGroup}
-        disabled={!selectedUser}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Welcome!</Text>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.content}>
+        <Text style={styles.greeting}>Hello, {user?.name}!</Text>
+        <Text style={styles.email}>{user?.email}</Text>
+        
+        <View style={styles.infoCard}>
+          <Text style={styles.cardTitle}>Account Information</Text>
+          <Text style={styles.cardText}>Name: {user?.name}</Text>
+          <Text style={styles.cardText}>Email: {user?.email}</Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f6f6',
+    backgroundColor: '#f8f9fa',
   },
-  scrollView: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    marginBottom: 16,
-    elevation: 4,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e8ed',
   },
-  loadingText: {
-    marginTop: 16,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  logoutButton: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  greeting: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 5,
+  },
+  email: {
     fontSize: 16,
+    color: '#7f8c8d',
+    marginBottom: 30,
   },
-  userButton: {
-    marginVertical: 4,
+  infoCard: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  errorCard: {
-    backgroundColor: '#ffebee',
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 15,
   },
-  errorText: {
-    color: '#c62828',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  cardText: {
+    fontSize: 16,
+    color: '#7f8c8d',
+    marginBottom: 8,
   },
 });
-
-export default HomeScreen;
