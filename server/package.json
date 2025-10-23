@@ -1,0 +1,23 @@
+{
+  "name": "bet-server",
+  "version": "1.0.0",
+  "description": "Backend server for Bet. social gamification app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["bet", "gamification", "social", "node", "express"],
+  "author": "EECS 497 Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5",
+    "lowdb": "^1.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
